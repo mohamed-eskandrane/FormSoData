@@ -17,6 +17,9 @@ let Datapurchases = [];
 let MoveV="MoveV";
 let UrlMove = `${base}&sheet=${MoveV}&tq=${query}`;
 let DataMove = [];
+let Gover="Gover";
+let UrlGover = `${base}&sheet=${Gover}&tq=${query}`;
+let DataGover = [];
 document.addEventListener('DOMContentLoaded', init)
 function init() {
     let Loading=document.getElementById("LoadingFormBrowser");
@@ -168,7 +171,52 @@ function GetCustomerName(Ccode){
   }
   return -1
 }
+//
+function LoadGover(){
+  DataGover=[];
+  fetch(UrlGover)
+  .then(res => res.text())
+  .then(rep => {
+      const jsonDataGover = JSON.parse(rep.substring(47).slice(0, -2));
+      const colzGover = [];
+      jsonDataGover.table.cols.forEach((headingGover) => {
+          if (headingGover.label) {
+              let columnGover = headingGover.label;
+              colzGover.push(columnGover);
+          }
+      })
+      jsonDataGover.table.rows.forEach((rowDataGover) => {
+          const rowGover1 = {};
+          colzGover.forEach((ele, ind) => {
+              rowGover1[ele] = (rowDataGover.c[ind] != null) ? rowDataGover.c[ind].v : '';
+          })
+          DataGover.push(rowGover1);
+      })
+  })
+}
 
+function GetGoverCode(Cname){
+  let GoverName;
+  for (let index = 0; index < DataGover.length; index++) {
+    GoverName=DataGover[index].GoverName;
+    if(GoverName==Cname){
+      return DataGover[index].GoverCode;
+    }
+  }
+  return -1;
+}
+
+function GetGoverName(Ccode){
+  let GoverCode;
+  for (let index = 0; index < DataGover.length; index++) {
+    GoverCode=DataGover[index].GoverCode;
+    if(GoverCode==Ccode){
+      return DataGover[index].GoverName;
+    }
+  }
+  return -1
+} 
+// 
 function LoadMat(){
   DataMat=[];
   fetch(UrlMat)
@@ -366,6 +414,7 @@ function LoadpurchasesWi(){
   Loadpurchases();
   LoadMat();
   LoadCustomers();
+  LoadGover();
   const myTimeout = setTimeout(function(){ 
     document.getElementById("BillNumberP").value =MaxBillNumberP();
     let Ti =new Date().getTime().valueOf();
@@ -430,6 +479,20 @@ function AddRowPrElementP() {
   btb.name="MatTotal" + bodydata.childElementCount ;
   td.appendChild(btb);
   row.appendChild(td=document.createElement('td'));
+  td.innerHTML=`<input list='GoverNameList${bodydata.childElementCount}' id="PRBCodeGo${bodydata.childElementCount}"  style='width:95%;' class="TableInputGo"  autocomplete="off" onkeyup="LoadGoverCode2(this)"/>`;
+  var datalist = document.createElement('datalist');
+  datalist.id=`GoverNameList${bodydata.childElementCount}`;
+  td.appendChild(datalist);
+  LoadGoverName(bodydata.childElementCount);
+  row.appendChild(td=document.createElement('td'));
+  var btb = document.createElement('input');
+  btb.type = "text";
+  btb.id="GoverCode" + bodydata.childElementCount ;
+  btb.name="GoverCode" + bodydata.childElementCount ;
+  td.style.display="none";
+  btb.className="GoverCode";
+  td.appendChild(btb);
+  row.appendChild(td=document.createElement('td'));
   var btb = document.createElement('input');
   btb.type = "text";
   btb.autocomplete="off";
@@ -468,7 +531,30 @@ function AddRowPrElementP() {
       MatCodeTxt.value="";
     }
   }
-  
+
+  function LoadGoverCode2(Mat){
+    const StrId=Mat.id
+    let MatCodeStr="GoverCode" + StrId.slice(9,StrId.length);
+    let MatCodeTxt =document.getElementById(MatCodeStr);
+    if(Mat!=undefined){
+      let GoverName,GoverCode;
+      for (let index = 0; index < DataGover.length; index++) {
+        GoverName=DataGover[index].GoverName
+        GoverCode=DataGover[index].GoverCode
+        if(GoverName==Mat.value){
+          MatCodeTxt.value=GoverCode;
+          return;
+        }
+      }
+      MatCodeTxt.value="";
+      return;
+    }else{
+      MatCodeTxt.value="";
+    }
+  }
+
+
+
   function DeleteRowP(TRow){
     let Row=String(TRow).slice(5,String(TRow).length);
     document.getElementById("PRBP" + Row).hidden=true;
@@ -491,7 +577,22 @@ function LoadMatsName2(Num){
     }
   }
 }
-
+function LoadGoverName(Num){
+  let GoverName,GoverNum;
+  let optionClass;
+  let GoverNameList =document.getElementById("GoverNameList" + Num);
+  GoverNameList.innerHTML="";
+  for (let index = 0; index < DataGover.length; index++) {
+    GoverNum=DataGover[index].GoverNum;
+    GoverName=DataGover[index].GoverName;
+    if(GoverNum!=""){
+      optionClass=document.createElement("option");
+      optionClass.value=GoverName;
+      optionClass.textContent=GoverName;
+      GoverNameList.appendChild(optionClass);
+    }
+  }
+}
 
 function CalculateRowAP(Am,TRow){
   let Row=String(TRow).slice(10,String(TRow).length);
@@ -542,6 +643,7 @@ function IstrueDataInformS2(){
   if(bodyBillPur.childElementCount==0){PurchasesItems.style.border="2px solid #ff0000";return false}else{PurchasesItems.style.border="2px solid rgb(155, 153, 153)";}
   if(IsTableInputMnTrueP()==false){return false};
   if(IsTableInputMaTrueP()==false){return false};
+  if(IsTableInputGoTrueP()==false){return false};
   RemoveRowHiddenP();
   if(bodyBillPur.childElementCount==0){PurchasesItems.style.border="2px solid #ff0000";return false}else{PurchasesItems.style.border="2px solid rgb(155, 153, 153)";}
   return true;
@@ -549,6 +651,21 @@ function IstrueDataInformS2(){
 
 function IsTableInputMnTrueP(){
   let TableInputMn=document.getElementsByClassName("TableInputMnP");
+  for (let index = 0; index < TableInputMn.length; index++) {
+    if (TableInputMn.item(index).parentElement.parentElement.hidden==false){
+      if (TableInputMn.item(index).value==""){
+        TableInputMn.item(index).parentElement.style.border="2px solid #ff0000";
+        return false ;
+      }else{
+        TableInputMn.item(index).parentElement.style.border="2px solid rgb(155, 153, 153)";
+      }
+    }
+  }
+  return true ;
+}
+
+function IsTableInputGoTrueP(){
+  let TableInputMn=document.getElementsByClassName("TableInputGo");
   for (let index = 0; index < TableInputMn.length; index++) {
     if (TableInputMn.item(index).parentElement.parentElement.hidden==false){
       if (TableInputMn.item(index).value==""){
@@ -662,6 +779,7 @@ function GetDateFromString(Str){
 }
 
 function LoadpurchasesBrowser(){
+  let UserCode= localStorage.getItem("UserCode")
   let Loading=document.getElementById("LoadingFormBrowser");
   let FormLoad=document.getElementById("FormLoad");
   Loading.className="fa fa-refresh fa-spin";
@@ -669,11 +787,12 @@ function LoadpurchasesBrowser(){
   Loadpurchases();
   LoadMat();
   LoadCustomers();
+  LoadGover();
   document.getElementById("bodydataP").innerHTML=""
   const myTimeout = setTimeout(function(){ 
     if (isNaN(Datapurchases[0].Num)==false){
       for (let index = 0; index < Datapurchases.length; index++) {
-        if(Datapurchases[index].Num!="" ){
+        if(Datapurchases[index].Num!="" && Datapurchases[index].SaleManCode==UserCode ){
           AddRowPrS1(
             Datapurchases[index].BillNumber,
             Datapurchases[index].BillDateS,
@@ -761,6 +880,8 @@ function AddRowPrS1(BillNumberPA,BillDatePA,AccountCodePA,TotalPA) {
         document.getElementById(`PRBAmountP${IndexTableRow}`).value= Math.abs(DataMove[indexM].Amount);
         document.getElementById(`PRBPriceP${IndexTableRow}`).value= DataMove[indexM].Price;
         document.getElementById(`PRBMatTotalP${IndexTableRow}`).value= DataMove[indexM].MatTotal;
+        document.getElementById(`PRBCodeGo${IndexTableRow}`).value= GetGoverName(DataMove[indexM].GoverCode);
+        document.getElementById(`GoverCode${IndexTableRow}`).value= DataMove[indexM].GoverCode;
         document.getElementById(`PRBNoteP${IndexTableRow}`).value= DataMove[indexM].Note;
         IndexTableRow++;
       }
