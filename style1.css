@@ -88,7 +88,7 @@
 width: calc(100% - var(--WithInputT) + var(--WithInputN));
 }
 .Column2{
-width: var(--WithInputN);
+width: calc(var(--WithInputN) - 2px);
 }
 .Column3{
 width: var(--WithInputN);
@@ -97,8 +97,12 @@ width: var(--WithInputN);
 width: calc(var(--WithInputN) + 2px);
 }
 .Column5{
-width: calc(var(--WithInputT) - 15px); 
+width: calc(var(--WithInputT) - 30px); 
 }
+.Column6{
+width: calc(var(--WithInputT) - 25px); 
+}
+
 @media print {
     html{
         width: 100% !important;
@@ -378,7 +382,7 @@ padding-right: 5px;
     text-align: center;
    }
 .user-box input , .user-box select ,.hh select ,.hh input ,.TableInputMc ,.TableInputMn,.TableInputMa,.TableInputMw , .TableInputMp ,.TableInputMt ,.TableInputMno,
-.TableInputMcS ,.TableInputMnS,.TableInputMaS,.TableInputMwS , .TableInputMpS ,.TableInputMtS ,.TableInputBon,.TableInputMnoS,.LAmounts , .TableInputMcP ,.TableInputMnP,.TableInputMaP,.TableInputMwP , .TableInputMpP ,.TableInputMtP ,.TableInputMnoP{
+.TableInputMcS ,.TableInputMnS,.TableInputMaS,.TableInputMwS , .TableInputMpS ,.TableInputMtS ,.TableInputBon,.TableInputMnoS,.LAmounts , .TableInputMcP ,.TableInputMnP,.TableInputGo,.TableInputMaP,.TableInputMwP , .TableInputMpP ,.TableInputMtP ,.TableInputMnoP{
     width: 70%;
     font-size: var( --fontX);
     color: var(--Font3Color);
